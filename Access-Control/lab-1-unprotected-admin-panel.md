@@ -1,3 +1,16 @@
+Lab: Directory Traversal – Accessing /etc/passwd
+Goal
+
+Verify whether the application allows access to files outside the intended directory.
+
+Observation
+
+The application loads images using the following parameter:
+
+/image?filename=
+
+This indicates that the server reads files directly from the filesystem based on the value of the filename parameter.
+
 If the application does not properly validate this parameter, it may be possible to access files outside the intended directory.
 
 Test
