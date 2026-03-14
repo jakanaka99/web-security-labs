@@ -1,55 +1,51 @@
-Lab: Access Control – Unprotected Admin Panel (robots.txt)
-Goal
-
-Verify whether the application exposes sensitive admin functionality through publicly accessible paths.
-
-Observation
-
-The application appears to have an admin panel, but its location is not directly visible in the interface.
-
-Many websites use the file:
-
-/robots.txt
-
-This file is intended for search engines like Google to indicate which paths should not be indexed.
-
-Sometimes developers mistakenly list sensitive directories in this file.
+If the application does not properly validate this parameter, it may be possible to access files outside the intended directory.
 
 Test
 
-I requested the following file using Burp Suite:
+I attempted to move outside the images directory by using directory traversal sequences:
 
-/robots.txt
+../
 
-Inside the response, I found a hidden path pointing to an admin panel.
+The sequence ../ moves one directory up in the filesystem.
+
+By chaining multiple ../, an attacker may reach sensitive system directories.
 
 Payload
+/image?filename=../../../etc/passwd
+Explanation
 
-/admin-path
+The payload uses multiple ../ sequences to move out of the image directory and access the system file:
 
-Explanation:
+/etc/passwd
 
-The robots.txt file contained a hidden directory that led to the admin interface.
+This file exists on most Linux systems and contains user account information.
 
 Result
 
-Accessing the path provided full access to the admin panel.
+The server returned the contents of the /etc/passwd file, confirming that directory traversal was possible.
 
-I was able to delete the user carlos, which solved the lab.
+This solved the lab.
 
 Impact
 
-If sensitive admin paths are exposed through robots.txt, attackers can easily discover them and gain access to restricted functionality.
+If directory traversal vulnerabilities exist, attackers may be able to access sensitive files on the server.
 
 This could allow attackers to:
 
-access administrative interfaces
+read system configuration files
 
-delete users
+access application source code
 
-modify application data
+obtain sensitive credentials
+
+gather information about system users
 
 Key Learning
 
-Sensitive directories should never be exposed in robots.txt.
-Access control must be enforced on the server side.
+User input used in file paths must be strictly validated.
+
+Applications should restrict file access to specific directories and prevent traversal sequences like:
+
+../
+
+Using proper input validation and secure file handling prevents directory traversal attacks.
