@@ -1,64 +1,74 @@
-# Lab: Directory Traversal – Accessing /etc/passwd
+# Lab: Access Control – Unprotected Admin Panel (robots.txt)
 
 ## Goal
 
-Verify whether the application allows access to files outside the intended directory.
+Verify whether the application exposes sensitive admin functionality through publicly accessible paths.
+
+---
 
 ## Observation
 
-The application loads images using the following parameter:
+The application appears to have an admin panel, but its location is not directly visible in the interface.
 
-/image?filename=
+Many websites use the file:
 
-This indicates that the server reads files directly from the filesystem based on the value of the **filename** parameter.
+```
+/robots.txt
+```
 
-If the application does not properly validate this parameter, it may be possible to access files outside the intended directory.
+This file is intended for search engines like Google to indicate which paths should not be indexed.
+
+Sometimes developers mistakenly list sensitive directories in this file.
+
+---
 
 ## Test
 
-I attempted to move outside the images directory by using directory traversal sequences:
+I requested the following file using Burp Suite:
 
-../
+```
+/robots.txt
+```
 
-The sequence `../` moves one directory up in the filesystem.
+Inside the response, I found a hidden path pointing to an admin panel.
 
-By chaining multiple `../`, an attacker may reach sensitive system directories.
+---
 
 ## Payload
 
-/image?filename=../../../etc/passwd
+```
+/admin-path
+```
+
+---
 
 ## Explanation
 
-The payload uses multiple `../` sequences to move out of the image directory and access the system file:
+The `robots.txt` file contained a hidden directory that led to the admin interface.
 
-/etc/passwd
-
-This file exists on most Linux systems and contains user account information.
+---
 
 ## Result
 
-The server returned the contents of the `/etc/passwd` file, confirming that directory traversal was possible.
+Accessing the path provided full access to the admin panel.
 
-This solved the lab.
+I was able to delete the user **carlos**, which solved the lab.
+
+---
 
 ## Impact
 
-If directory traversal vulnerabilities exist, attackers may be able to access sensitive files on the server.
+If sensitive admin paths are exposed through `robots.txt`, attackers can easily discover them and gain access to restricted functionality.
 
 This could allow attackers to:
 
-- read system configuration files
-- access application source code
-- obtain sensitive credentials
-- gather information about system users
+* Access administrative interfaces
+* Delete users
+* Modify application data
+
+---
 
 ## Key Learning
 
-User input used in file paths must be strictly validated.
-
-Applications should restrict file access to specific directories and prevent traversal sequences like:
-
-../
-
-Using proper input validation and secure file handling prevents directory traversal attacks.
+* Sensitive directories should never be exposed in `robots.txt`
+* Access control must be enforced on the server side
