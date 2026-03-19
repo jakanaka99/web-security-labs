@@ -116,6 +116,3 @@ This vulnerability allows attackers to:
 
 
 
-Example pattern:
-
-POST ❌ → GET ✅
